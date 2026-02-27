@@ -1,3 +1,7 @@
+// Google Apps Script Web App URL (used to save each new task to Google Sheets)
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbxBURsevVjpayeyJoumk24TG5x624E9eN2E0dERVWapSZEoKKfyDZRRN_8TcQhLlmIQ/exec";
+
 // Storage key used to save/read tasks from localStorage
 const STORAGE_KEY = "tasks";
 
@@ -6,6 +10,7 @@ const taskTitleInput = document.getElementById("taskTitle");
 const taskStatusSelect = document.getElementById("taskStatus");
 const addTaskButton = document.getElementById("addTaskButton");
 const taskTableBody = document.getElementById("taskTableBody");
+const saveMessage = document.getElementById("saveMessage");
 
 // In-memory array of tasks (loaded from localStorage on startup)
 let tasks = loadTasks();
@@ -42,13 +47,53 @@ function addTask() {
     createdAt: new Date().toLocaleString(),
   };
 
+  // 1) Keep local update first so the UI feels instant
   tasks.push(newTask);
   saveTasks();
   renderTasks();
 
+  // 2) Send title + status to Google Sheets in the background
+  sendTaskToSheet(newTask);
+
   // Clear input so user can quickly add another task
   taskTitleInput.value = "";
   taskTitleInput.focus();
+}
+
+// Send one task to the Google Apps Script web app using POST
+async function sendTaskToSheet(task) {
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // Only send the fields requested
+      body: JSON.stringify({
+        title: task.title,
+        status: task.status,
+      }),
+    });
+
+    // If request completed successfully, show a small success message
+    if (response.ok) {
+      showSaveMessage("Saved to Sheet");
+    }
+  } catch (error) {
+    // Keep this friendly: local save still works even if network fails
+    console.error("Could not save to Google Sheet:", error);
+  }
+}
+
+// Show a short status message under the button for a moment
+function showSaveMessage(messageText) {
+  saveMessage.textContent = messageText;
+  saveMessage.classList.add("visible");
+
+  // Hide it after a short delay
+  setTimeout(() => {
+    saveMessage.classList.remove("visible");
+  }, 1800);
 }
 
 // Remove a task by ID
