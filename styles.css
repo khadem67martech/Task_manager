@@ -98,3 +98,8 @@ th {
 .save-message.visible {
   opacity: 1;
 }
+
+.save-message.error {
+  color: #b91c1c;
+}
+
