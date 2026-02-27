@@ -85,3 +85,16 @@ th {
   color: #6b7280;
   font-style: italic;
 }
+
+/* Small "Saved to Sheet" feedback text */
+.save-message {
+  margin: 0.1rem 0 0;
+  font-size: 0.88rem;
+  color: #15803d;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.save-message.visible {
+  opacity: 1;
+}
