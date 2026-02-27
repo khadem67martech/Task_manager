@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Task Manager</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Task Manager</h1>
+
+      <!-- Form area: users can add a task title and status -->
+      <section class="task-form" aria-label="Add a new task">
+        <label for="taskTitle">Task title</label>
+        <input
+          id="taskTitle"
+          type="text"
+          placeholder="e.g. Finish homework"
+          autocomplete="off"
+        />
+
+        <label for="taskStatus">Status</label>
+        <select id="taskStatus">
+          <option value="Todo">Todo</option>
+          <option value="Doing">Doing</option>
+          <option value="Done">Done</option>
+        </select>
+
+        <button id="addTaskButton" type="button">Add task</button>
+      </section>
+
+      <!-- Table area: all saved tasks are listed here -->
+      <section aria-label="Task list">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Created time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="taskTableBody">
+            <!-- JavaScript will insert rows here -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
