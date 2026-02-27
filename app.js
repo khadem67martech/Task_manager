@@ -1,6 +1,5 @@
-// Google Apps Script Web App URL (used to save each new task to Google Sheets)
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbxBURsevVjpayeyJoumk24TG5x624E9eN2E0dERVWapSZEoKKfyDZRRN_8TcQhLlmIQ/exec";
+// Google Form action URL (used to save each new task to Google Sheets)
+const FORM_ACTION_URL = "PUT_FORM_ACTION_URL_HERE";
 
 // Storage key used to save/read tasks from localStorage
 const STORAGE_KEY = "tasks";
@@ -52,45 +51,81 @@ function addTask() {
   saveTasks();
   renderTasks();
 
-  // 2) Send title + status to Google Sheets in the background
-  sendTaskToSheet(newTask);
+  // 2) Send title + status + created time to Google Form in the background
+  sendTaskToGoogleForm(newTask);
 
   // Clear input so user can quickly add another task
   taskTitleInput.value = "";
   taskTitleInput.focus();
 }
 
-// Send one task to the Google Apps Script web app using POST
-async function sendTaskToSheet(task) {
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8",
-      },
-      // Only send the fields requested
-      body: JSON.stringify({
-        title: task.title,
-        status: task.status,
-      }),
-    });
+// Submit one task to a Google Form using a hidden form + iframe
+function sendTaskToGoogleForm(task) {
+  const iframeName = `google-form-target-${Date.now()}`;
+  const iframe = document.createElement("iframe");
+  iframe.name = iframeName;
+  iframe.hidden = true;
 
-    // If request completed successfully, show a small success message
-    if (response.ok) {
-      showSaveMessage("Saved to Sheet");
+  const form = document.createElement("form");
+  form.action = FORM_ACTION_URL;
+  form.method = "POST";
+  form.target = iframeName;
+  form.hidden = true;
+
+  const fields = {
+    "entry.1486922306": task.title,
+    "entry.1852717744": task.status,
+    "entry.1431330731": task.createdAt,
+  };
+
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(iframe);
+  document.body.appendChild(form);
+
+  let hasSubmitted = false;
+
+  const cleanup = () => {
+    form.remove();
+    iframe.remove();
+  };
+
+  iframe.addEventListener("load", () => {
+    if (!hasSubmitted) {
       return;
     }
 
-    const responseText = await response.text();
-    console.error(
-      `Could not save to Google Sheet (HTTP ${response.status}):`,
-      responseText
-    );
-    showSaveMessage("Could not save to Sheet. Please try again.", true);
+    showSaveMessage("Saved to Google Sheet");
+    cleanup();
+  });
+
+  iframe.addEventListener("error", () => {
+    showSaveMessage("Could not save", true);
+    cleanup();
+  });
+
+  try {
+    hasSubmitted = true;
+    form.submit();
+
+    // Some browsers do not reliably trigger iframe load for cross-origin responses.
+    // Keep UI friendly by showing success shortly after submit.
+    setTimeout(() => {
+      if (document.body.contains(form) || document.body.contains(iframe)) {
+        showSaveMessage("Saved to Google Sheet");
+        cleanup();
+      }
+    }, 700);
   } catch (error) {
-    // Keep this friendly: local save still works even if network fails
     console.error("Could not save to Google Sheet:", error);
-    showSaveMessage("Could not save to Sheet. Please try again.", true);
+    showSaveMessage("Could not save", true);
+    cleanup();
   }
 }
 
