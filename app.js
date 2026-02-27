@@ -1,5 +1,5 @@
 // Google Form action URL (used to save each new task to Google Sheets)
-const FORM_ACTION_URL = "PUT_FORM_ACTION_URL_HERE";
+const FORM_ACTION_URL = "https://docs.google.com/spreadsheets/d/1cq82Z56iE7eO2XH7aMW66a3MYF-9mFwqis7oIpA7xNc/edit?usp=sharing";
 
 // Storage key used to save/read tasks from localStorage
 const STORAGE_KEY = "tasks";
