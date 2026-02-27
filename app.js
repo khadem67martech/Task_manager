@@ -66,7 +66,7 @@ async function sendTaskToSheet(task) {
     const response = await fetch(API_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "text/plain;charset=utf-8",
       },
       // Only send the fields requested
       body: JSON.stringify({
@@ -78,16 +78,26 @@ async function sendTaskToSheet(task) {
     // If request completed successfully, show a small success message
     if (response.ok) {
       showSaveMessage("Saved to Sheet");
+      return;
     }
+
+    const responseText = await response.text();
+    console.error(
+      `Could not save to Google Sheet (HTTP ${response.status}):`,
+      responseText
+    );
+    showSaveMessage("Could not save to Sheet. Please try again.", true);
   } catch (error) {
     // Keep this friendly: local save still works even if network fails
     console.error("Could not save to Google Sheet:", error);
+    showSaveMessage("Could not save to Sheet. Please try again.", true);
   }
 }
 
 // Show a short status message under the button for a moment
-function showSaveMessage(messageText) {
+function showSaveMessage(messageText, isError = false) {
   saveMessage.textContent = messageText;
+  saveMessage.classList.toggle("error", isError);
   saveMessage.classList.add("visible");
 
   // Hide it after a short delay
